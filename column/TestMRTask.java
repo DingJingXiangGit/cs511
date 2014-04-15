@@ -15,8 +15,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapreduce.Mapper.Context;
 
-//import org.apache.hadoop.mapreduce.lib.output.*;
-public class ColumnPartition{
+public class TestMRTask{
 	public static class Map extends MapReduceBase implements Mapper <Object, Text, Text, Text> {
 		private Text key = new Text();
 		public void map(Object object, Text value, OutputCollector<Text, Text> context, Reporter reporter) throws IOException {
@@ -31,12 +30,11 @@ public class ColumnPartition{
 		private Text outKey = new Text();
 		private BinaryWritable bytes;
 		private String[] headers;
-		private int[] columnSizes;
 
 		public void configure(JobConf job){
 			try{
 				String headerFile = job.get("headers");
-				Path file = new Path(headerFile);
+				Path file = new Path(headerFile);//FileOutputFormat.getTaskOutputPath(job, headerFile);
 				FileSystem fs = file.getFileSystem(job);
 				FSDataInputStream fis = fs.open(file);
 				BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
@@ -44,109 +42,27 @@ public class ColumnPartition{
 				reader.close();
 				fis.close();
 				headers = headerString.split(",");
-				columnSizes = new int[headers.length];
 			}catch(IOException e){
 				e.printStackTrace();
 			}
 		}
 		public void reduce(Text key, Iterator<Text> values, OutputCollector<Text, Text> context, Reporter reporter){
 			try{
-				for(int i = 0; i < headers.length; ++i){
-					columnSizes[i] = 0;
-				}
 				while(values.hasNext()){
 					String item = values.next().toString();
 					String[] cols = item.split(",");
-					String token;
 					for(int i = 0; i < cols.length; ++i){
 						if(headers == null || headers.length <= i){
 							outKey.set(i+"");
 						}else{
 							outKey.set(headers[i]);
 						}
-						token = cols[i].trim();
-						columnSizes[i] += token.length()+1;
-						context.collect(outKey, new Text(token));
+						context.collect(outKey, new Text(cols[i].trim()));
 					}
-				}
-				for(int i = 0; i < headers.length; ++i){
-					outKey.set(headers[i]);
-					context.collect(outKey, new Text(String.format("%016d", columnSizes[i])));
 				}
 			}catch(Exception e){
 				e.printStackTrace();
 			}
-		}
-		private byte[] getBytes(Object obj) throws Exception{
-			if(obj instanceof Double){
-				return getBytes((Double)obj);
-			}else if(obj instanceof Long){
-				return getBytes((Long)obj);
-			}else if(obj instanceof Float){
-				return getBytes((Float)obj);
-			}else if(obj instanceof Integer){
-				return getBytes((Integer)obj);
-			}else if(obj instanceof Short){
-				return getBytes((Short)obj);
-			}else if(obj instanceof Byte){
-				return getBytes((Byte)obj);
-			}else if(obj instanceof Character){
-				return getBytes((Character)obj);
-			}else{
-				return getBytes((String)obj);
-			}
-		}	
-		private byte[] getBytes(double h){
-			ByteBuffer bbuf = ByteBuffer.allocate(8);
-			bbuf.order(ByteOrder.BIG_ENDIAN);
-			bbuf.clear();
-			bbuf.putDouble(h);
-			return bbuf.array();
-		}
-		private byte[] getBytes(long h){
-			ByteBuffer bbuf = ByteBuffer.allocate(8);
-			bbuf.order(ByteOrder.BIG_ENDIAN);
-			bbuf.clear();
-			bbuf.putLong(h);
-			return bbuf.array();
-		}
-		private byte[] getBytes(float h){
-			ByteBuffer bbuf = ByteBuffer.allocate(4);
-			bbuf.order(ByteOrder.BIG_ENDIAN);
-			bbuf.clear();
-			bbuf.putFloat(h);
-			return bbuf.array();
-		}
-		private byte[] getBytes(int h){
-			ByteBuffer bbuf = ByteBuffer.allocate(4);
-			bbuf.order(ByteOrder.BIG_ENDIAN);
-			bbuf.clear();
-			bbuf.putInt(h);
-			return bbuf.array();
-		}
-		private byte[] getBytes(short h){
-			ByteBuffer bbuf = ByteBuffer.allocate(2);
-			bbuf.order(ByteOrder.BIG_ENDIAN);
-			bbuf.clear();
-			bbuf.putShort(h);
-			return bbuf.array();
-		}
-		private byte[] getBytes(char h){
-			ByteBuffer bbuf = ByteBuffer.allocate(1);
-			bbuf.order(ByteOrder.BIG_ENDIAN);
-			bbuf.clear();
-			bbuf.put((byte)h);
-			return bbuf.array();
-		}
-		private byte[] getBytes(byte h){
-			ByteBuffer bbuf = ByteBuffer.allocate(1);
-			bbuf.order(ByteOrder.BIG_ENDIAN);
-			bbuf.clear();
-			bbuf.put(h);
-			return bbuf.array();
-		}
-		private byte[] getBytes(String h)throws Exception{
-			return h.getBytes("UTF");
 		}
 	}
 
@@ -166,7 +82,8 @@ public class ColumnPartition{
 		conf.setJarByClass(ColumnPartition.class);
 		conf.setMapperClass(Map.class);
 		conf.setReducerClass(Reduce.class);
-		conf.setOutputFormat(ColumnOutputFormat.class);
+		conf.setOutputFormat(TextOutputFormat.class);
+		conf.setInputFormat(ColumnInputFormat.class);
 		conf.set("headers", args[1]);
 		FileInputFormat.setInputPaths(conf, new Path(args[0]));
 		FileOutputFormat.setOutputPath(conf, new Path(args[2]));

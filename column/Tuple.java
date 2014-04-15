@@ -60,7 +60,7 @@ public class Tuple implements java.io.Serializable, Comparable<Tuple>{
 		site_id = Integer.parseInt(tokens[16]);
 		netspeed_id = Byte.parseByte(tokens[17]);
 		user_agent = Byte.parseByte(tokens[18]);
-		tail = getTail(entry, separator, 19);
+		tail = getTail(entry, separator, 21);
 	}
 
 	public String getTail(String entry, String separator, int anchor){

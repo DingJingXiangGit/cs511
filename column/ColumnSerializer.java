@@ -31,34 +31,42 @@ public class ColumnSerializer{
 			if(field.getType() == int.class){
 				for(Tuple tuple: tuples){
 					w.writeInt((Integer)field.get(tuple));
+					field.set(tuple, null);
 				}
 			}else if(field.getType() == byte.class){
 				for(Tuple tuple: tuples){
 					w.writeByte((Byte)field.get(tuple));
+					field.set(tuple, null);
 				}
 			}else if(field.getType() == long.class){
 				for(Tuple tuple: tuples){
 					w.writeLong((Long)field.get(tuple));
+					field.set(tuple, null);
 				}
 			}else if(field.getType() == double.class){
 				for(Tuple tuple: tuples){
 					w.writeDouble((Double)field.get(tuple));
+					field.set(tuple, null);
 				}
 			}else if(field.getType() == float.class){
 				for(Tuple tuple: tuples){
 					w.writeFloat((Float)field.get(tuple));
+					field.set(tuple, null);
 				}
 			}else if(field.getType() == short.class){
 				for(Tuple tuple: tuples){
 					w.writeShort((Short)field.get(tuple));
+					field.set(tuple, null);
 				}
 			}else if(field.getType() == boolean.class){
 				for(Tuple tuple: tuples){
 					w.writeBoolean((Boolean)field.get(tuple));
+					field.set(tuple, null);
 				}
 			}else if(field.getType() == String.class){
 				for(Tuple tuple: tuples){
 					w.writeUTF((String)field.get(tuple));
+					field.set(tuple, null);
 				}
 			}
 			w.flush();
@@ -66,6 +74,7 @@ public class ColumnSerializer{
 			columns.put(field.getName(), bytes);
 			w.close();
 			baos.close();
+			System.gc();
 		}
 		return columns;
 	}
