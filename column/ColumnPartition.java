@@ -49,32 +49,29 @@ public class ColumnPartition{
 				e.printStackTrace();
 			}
 		}
-		public void reduce(Text key, Iterator<Text> values, OutputCollector<Text, Text> context, Reporter reporter){
-			try{
-				for(int i = 0; i < headers.length; ++i){
-					columnSizes[i] = 0;
-				}
-				while(values.hasNext()){
-					String item = values.next().toString();
-					String[] cols = item.split(",");
-					String token;
-					for(int i = 0; i < cols.length; ++i){
-						if(headers == null || headers.length <= i){
-							outKey.set(i+"");
-						}else{
-							outKey.set(headers[i]);
-						}
-						token = cols[i].trim();
-						columnSizes[i] += token.length()+1;
-						context.collect(outKey, new Text(token));
+		public void reduce(Text key, Iterator<Text> values, OutputCollector<Text, Text> context, Reporter reporter) throws IOException{
+			for(int i = 0; i < headers.length; ++i){
+				columnSizes[i] = 0;
+			}
+			while(values.hasNext()){
+				String item = values.next().toString();
+				String[] cols = item.split(",");
+				String token;
+				for(int i = 0; i < cols.length; ++i){
+					if(headers == null || i >= headers.length){
+						continue;
+						//outKey.set(i+"");
+					}else{
+						outKey.set(headers[i]);
 					}
+					token = cols[i].trim();
+					columnSizes[i] += token.length()+1;
+					context.collect(outKey, new Text(token));
 				}
-				for(int i = 0; i < headers.length; ++i){
-					outKey.set(headers[i]);
-					context.collect(outKey, new Text(String.format("%016d", columnSizes[i])));
-				}
-			}catch(Exception e){
-				e.printStackTrace();
+			}
+			for(int i = 0; i < headers.length; ++i){
+				outKey.set(headers[i]);
+				context.collect(outKey, new Text(String.format("%016d", columnSizes[i])));
 			}
 		}
 		private byte[] getBytes(Object obj) throws Exception{
