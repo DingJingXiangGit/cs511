@@ -1,0 +1,66 @@
+This is the readme file that decribe about the detail of the source code.
+1. compile:
+	javac -classpath /hadoop/hadoop-core-0.20.203.0.jar -sourcepath . -d ./column_pack/ *.java
+	jar -cvf column.jar -C column_pack/ .
+
+2. Partition:
+	hadoop jar column.jar ColumnPartitionByte  /home/cting4/data.txt /home/cting4/schema /home/cting4/column_files
+
+3. Sample Tasks: 
+	3.1. select all users from the dataset.
+	Query:
+		SELECT user_id
+		FROM data
+	Command:
+		hadoop jar column.jar SelectUserByte /home/cting4/column_files /home/cting4/select_user
+
+	3.2. compute the total number of imperssions, clicks and conventions for each region
+	Query:
+		SELECT SUM(impressions), SUM(clicks), SUM(conventions)
+		FROM data
+		GROUP BY region_id
+	Command:
+		hadoop jar column.jar RegionStatBinary /home/cting4/column_files /home/cting4/schema "region_group" /home/cting4/region_stat_binary
+
+4. Source Code description:
+	4.1. Partition:
+		ColumnPartition.java - This is the java file that implements the plain text column 
+							   partition algorithm.
+
+		ColumnPartitionByte.java - This java file implements that column partition algorithm 
+								   and applys user define schema on each column.
+
+	4.2. Output Format:
+		ColumnOutputFormat.java - This file customize the output procedure of column partitioning.
+								  It will write the value of the key-value pair into the file specified by the key.
+
+		ColumnOutputFormatByte.java - This file customize the output procedure of column 
+									  partitioning. It will write the value of the key-value pair into the file specified by the key in binary format.
+	4.3. Input Format:
+		ColumnInputFormat.java - This file customize the input procedure of using plain text 
+								 column files as input files. It will combines the columns specified by user and output read tuples in csv format.
+
+		ColumnInputFormatByte.java - This file customize the input procedure of using binary 
+								 	 column files as input files. It will combines the columns specified by user and output read tuples in csv format.
+
+	4.4. Evaluation:
+		4.4.1: Select all users from the dataset.
+			SelectUser.java - this java file implments the query above and takes the
+							  un-partitioned raw data file as input.
+
+			SelectUserCol.java - this java file implments the query above and takes the 
+			                     partitioned plain text column file as input.
+
+			SelectUserByte.java - this java file implments the query above and takes the 
+			                     partitioned binary column file as input.
+
+		4.4.2: Compute the total number of imperssions, clicks and conventions for each region
+			RegionStatRow.java - this file implements the query above and use the un-partitioned
+								 raw data file as input.
+
+			RegionStat.java - this file implements the query above and use the column partitioned
+							  column files as input.
+
+			RegionStatBinary.java - this file implements the query above and use the column 
+									partitioned binary column files as input.
+			

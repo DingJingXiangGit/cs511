@@ -57,7 +57,7 @@ public class RegionStatRow{
 	}
 
 	public static void main (String[] args) throws Exception{
-		if(args.length != 3){
+		if(args.length != 2){
 			System.err.println("Usage: campaignStat <input file> <output file>");
 			System.exit(2);
 		}
@@ -68,9 +68,8 @@ public class RegionStatRow{
 		conf.setMapperClass(Map.class);
 		conf.setReducerClass(Reduce.class);
 		conf.setNumReduceTasks(40);
-		conf.set("columns", args[1]);
 		FileInputFormat.setInputPaths(conf, new Path(args[0]));
-		FileOutputFormat.setOutputPath(conf, new Path(args[2]));
+		FileOutputFormat.setOutputPath(conf, new Path(args[1]));
 		JobClient.runJob(conf);
 	}
 }

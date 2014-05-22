@@ -19,7 +19,7 @@ public class ColumnSerializer{
 	}
 
 	public void addItem(String entry){
-		tuples.add(new Tuple(entry, separator));
+		//tuples.add(new Tuple(entry, separator));
 	}
 
 	public Map<String, byte[]> getColumns() throws Exception{

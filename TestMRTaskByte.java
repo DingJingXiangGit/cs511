@@ -15,10 +15,10 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapreduce.Mapper.Context;
 
-public class TestMRTask{
+public class TestMRTaskByte{
 	public static class Map extends MapReduceBase implements Mapper <Text, Text, Text, Text> {
 		public void map(Text key, Text value, OutputCollector<Text, Text> context, Reporter reporter) throws IOException {
-			System.err.println(value);
+			//System.err.println(value);
 			context.collect(key, value);
 		}
 	}
@@ -35,24 +35,25 @@ public class TestMRTask{
 
 
 	public static void main (String[] args) throws Exception{
-		if(args.length != 3){
+		if(args.length != 4){
 			System.err.println("Usage: ColumnPartition <input file> <column header file>  <output file>");
 			System.exit(2);
 		}
-		JobConf conf = new JobConf(TestMRTask.class);
+		JobConf conf = new JobConf(TestMRTaskByte.class);
 		conf.set("mapred.textoutputformat.separator", ",");
 		conf.setOutputKeyClass(NullWritable.class);
 		conf.setOutputValueClass(Text.class);
 		conf.setMapOutputKeyClass(Text.class);
 		conf.setMapOutputValueClass(Text.class);
-		conf.setJarByClass(TestMRTask.class);
+		conf.setJarByClass(TestMRTaskByte.class);
 		conf.setMapperClass(Map.class);
 		conf.setReducerClass(Reduce.class);
 		conf.setOutputFormat(TextOutputFormat.class);
-		conf.setInputFormat(ColumnInputFormat.class);
-		conf.set("columns", args[1]);
+		conf.setInputFormat(ColumnInputFormatByte.class);
+		conf.set("columns", args[2]);
+		conf.set("schema", args[1]);
 		FileInputFormat.setInputPaths(conf, new Path(args[0]));
-		FileOutputFormat.setOutputPath(conf, new Path(args[2]));
+		FileOutputFormat.setOutputPath(conf, new Path(args[3]));
 		JobClient.runJob(conf);
 	}
 }
